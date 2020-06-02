@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charse="utf-8">
+        <title>Graph Visualizer</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="main">
+            <div class="row">
+                <div class="col heading">
+                    <h1>GVIZ</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col view">
+                    <canvas></canvas>
+                    <!--<svg xmlns"http://www.w3.org/2000/svg" viewBox="0 0 60 20" id="inline">
+                    </svg>-->
+                </div>
+                <div class="col side-pan">
+                    <h3>Graph[<a title="Enter edge list with number of vertex and number of edges">?</a>]:</h3>
+                    <textarea id="text_input" value="3 3 1 2 2 3 3 1"></textarea>
+                    <p></p>
+                    <button id="submit-button" onclick="render()">Submit</button>
+                    <p></p>
+                </div>
+            </div>
+            <div class="row">
+                <p style="color: rgba(255, 255, 255, 0.7);"><b style="color: crimson;">Note:</b> If graph rendered imperfect please press submit again</p>
+            </div>
+        </div>
+        <script src="main.js"></script>
+        <script src="control.js"></script>
+    </body>
+</html>
