@@ -8,7 +8,6 @@ textInput.defaultValue = ""
 function render() {
     let text = textInput.value;
     let tokens = text.split(/\s+/);
-    console.log(tokens);
     let N = Number(tokens[0]);
     let M = Number(tokens[1]);
     let V = [];

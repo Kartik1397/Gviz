@@ -87,15 +87,7 @@ let edges = [];
 let adj = [];
 
 function loop() {
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillRect(0, 0, width, height);
-
-    for (let i = 0; i < edges.length; i++) {
-        edges[i].draw();
-    }
-
     for (let i = 0; i < nodes.length; i++) {
-        nodes[i].draw();
         let resultant = new Force(0, 0);
         for (let j = 0; j < nodes.length; j++) {
             if (j !== i) {
@@ -105,7 +97,7 @@ function loop() {
                     f.scale(10*(dist(nodes[i], nodes[j])-edgeLen));
                 }
                 f.add(uvec(nodes[j], nodes[i]));
-                f.scale(20/(dist(nodes[i], nodes[j])*dist(nodes[i], nodes[j])));
+                f.scale(30/(dist(nodes[i], nodes[j])*dist(nodes[i], nodes[j])));
                 resultant.add(f);
             }
         }
@@ -130,7 +122,7 @@ Graph.prototype.draw = function() {
     adj = [];
 
     for (let i = 0; i < this.V.length; i++) {
-        nodes.push(new Node(300+Math.floor(200*Math.random()), 200+Math.floor(300*Math.random()), 0, 0, 'white', 20, this.V[i], new Force(0, 0)));
+        nodes.push(new Node(300+Math.floor(400*Math.random()), 200+Math.floor(400*Math.random()), 0, 0, 'white', 20, this.V[i], new Force(0, 0)));
     }
     
     for (let i = 0; i < this.E.length; i++) {
@@ -144,20 +136,21 @@ Graph.prototype.draw = function() {
         }
         adj.push(temp);
     }
-  //  console.log(adj);
     for (let i = 0; i < this.E.length; i++) {
-//console.log(this.E[i]);
         adj[this.E[i][0]-1][this.E[i][1]-1] = 1;
         adj[this.E[i][1]-1][this.E[i][0]-1] = 1;
     }
-    //console.log(adj, nodes, edges);
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 20000; i++) {
         loop();
     }
+
+    ctx.fillStyle = "#1e1e1e";
+    ctx.fillRect(0, 0, width, height);
+
+    for (let i = 0; i < edges.length; i++) {
+        edges[i].draw();
+    }
+    for (let i = 0; i < nodes.length; i++) {
+        nodes[i].draw();
+    }
 }
-/*
-3 3
-1 2
-2 3
-3 1
-*/
