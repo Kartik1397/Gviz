@@ -111,6 +111,23 @@ function loop() {
     }
 }
 
+function moveGraphToCenter() {
+    let average_x = 0, average_y = 0;
+
+    for (let i = 0; i < nodes.length; i++) {
+        average_x += nodes[i].x;
+        average_y += nodes[i].y;
+    }
+
+    average_x /= nodes.length;
+    average_y /= nodes.length;
+
+    for (let i = 0; i < nodes.length; i++) {
+        nodes[i].x -= (average_x-canvas.width/2);
+        nodes[i].y -= (average_y-canvas.height/2);
+    }
+}
+
 function Graph(V, E) {
     this.V = V;
     this.E = E;
@@ -144,12 +161,15 @@ Graph.prototype.draw = function() {
         loop();
     }
 
+    moveGraphToCenter();
+    
     ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, width, height);
-
+    
     for (let i = 0; i < edges.length; i++) {
         edges[i].draw();
     }
+
     for (let i = 0; i < nodes.length; i++) {
         nodes[i].draw();
     }
