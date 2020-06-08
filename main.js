@@ -52,6 +52,10 @@ Node.prototype.update = function() {
     this.y += this.velY;
 }
 
+Node.prototype.copy = function() {
+    return new Node(this.x, this.y, this.velX, this.velY, this.color, this.size, this.val, this.force);
+}
+
 function Edge(v1, v2, color) {
     this.v1 = v1;
     this.v2 = v2;
@@ -94,10 +98,10 @@ function loop() {
                 let f = new Force(0, 0);
                 if (adj[i][j]) {
                     f.add(uvec(nodes[i], nodes[j]));
-                    f.scale(10*(dist(nodes[i], nodes[j])-edgeLen));
+                    f.scale(20*(dist(nodes[i], nodes[j])-edgeLen));
                 }
                 f.add(uvec(nodes[j], nodes[i]));
-                f.scale(30/(dist(nodes[i], nodes[j])*dist(nodes[i], nodes[j])));
+                f.scale(10/(dist(nodes[i], nodes[j])*dist(nodes[i], nodes[j])));
                 resultant.add(f);
             }
         }
@@ -128,6 +132,30 @@ function moveGraphToCenter() {
     }
 }
 
+function graphScore() {
+    let mn = 100000000;
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = 0; j < nodes.length; j++) {
+            if (i != j) {
+                mn = Math.min(mn, dist(nodes[i], nodes[j]));
+            }
+        }
+    }
+    return mn;
+}
+
+function graphDia() {
+    let mx = 0;
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = 0; j < nodes.length; j++) {
+            if (i != j) {
+                mx = Math.max(mx, dist(nodes[i], nodes[j]));
+            }
+        }
+    }
+    return mx;
+}
+
 function Graph(V, E) {
     this.V = V;
     this.E = E;
@@ -142,10 +170,6 @@ Graph.prototype.draw = function() {
         nodes.push(new Node(300+Math.floor(400*Math.random()), 200+Math.floor(400*Math.random()), 0, 0, 'white', 20, this.V[i], new Force(0, 0)));
     }
     
-    for (let i = 0; i < this.E.length; i++) {
-        edges.push(new Edge(nodes[this.E[i][0]-1], nodes[this.E[i][1]-1], 'white'));
-    }
-    
     for (let i = 0; i < this.V.length; i++) {
         let temp = [];
         for (let j = 0; j < this.V.length; j++) {
@@ -157,15 +181,42 @@ Graph.prototype.draw = function() {
         adj[this.E[i][0]-1][this.E[i][1]-1] = 1;
         adj[this.E[i][1]-1][this.E[i][0]-1] = 1;
     }
-    for (let i = 0; i < 20000; i++) {
-        loop();
+
+    var best_score = 0;
+    var best_nodes = [];
+    for (let j = 0; j < 20; j++) {
+        for (let i = 0; i < nodes.length; i++) {
+            nodes[i].x = 300+Math.floor(400*Math.random() + 10*Math.random());
+            nodes[i].y = 300+Math.floor(400*Math.random() + 20*Math.random());
+            nodes[i].velX = 0;
+            nodes[i].velY = 0;
+            nodes[i].Force = new Force(0, 0);
+        }
+        for (let i = 0; i < 5000; i++) {
+            loop();
+        }
+        let score = graphScore();
+        let max_dist = graphDia();
+
+        if (score > best_score && max_dist < canvas.height) {
+            best_score = score;
+            best_nodes = [];
+            for (let i = 0; i < nodes.length; i++) {
+                best_nodes[i] = nodes[i].copy();
+            }
+        }
     }
 
+    nodes = best_nodes;
     moveGraphToCenter();
     
     ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, width, height);
     
+    for (let i = 0; i < this.E.length; i++) {
+        edges.push(new Edge(nodes[this.E[i][0]-1], nodes[this.E[i][1]-1], 'white'));
+    }
+
     for (let i = 0; i < edges.length; i++) {
         edges[i].draw();
     }
