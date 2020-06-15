@@ -30,7 +30,11 @@
                 <p style="color: rgba(255, 255, 255, 0.7);"><b style="color: crimson;">Note:</b> If graph rendered imperfect please press submit again</p>
             </div>
         </div>
-        <script src="main.js"></script>
-        <script src="control.js"></script>
+        <script type="module" src="./main.js"></script>
+        <script type="module" src="./control.js"></script>
+        <script type="module">
+            import { render } from './control.js';
+            window.render = render;
+        </script>
     </body>
 </html>

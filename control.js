@@ -1,11 +1,11 @@
-//import * as Main from './main.js';
+import { Graph } from './main.js';
 
 const textInput = document.getElementById('text_input');
 const edgeLenInput = document.getElementById('edge_len');
 
 textInput.defaultValue = ""
 
-function render() {
+export function render() {
     let text = textInput.value;
     let tokens = text.split(/\s+/);
     let N = Number(tokens[0]);
