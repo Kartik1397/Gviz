@@ -1,104 +1,36 @@
-const canvas = document.querySelector('canvas');
+import { Force, dist, uvec, mag } from './modules/force.js';
+import { Node } from './modules/node.js';
+import { Edge } from './modules/edge.js';
 
+const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
-const width = canvas.width = 970;
-const height = canvas.height = 600;
-const radius = 10;
-const edgeLen = 100;
+// variables
 
-function Force(x, y) {
-    this.x = x;
-    this.y = y;
-}
-
-Force.prototype.add = function(f) {
-    this.x += f.x;
-    this.y += f.y;
-}
-
-Force.prototype.scale = function(v) {
-    this.x *= v;
-    this.y *= v;
-}
-
-function Node(x, y, velX, velY, color, size, val, force) {
-    this.x = x;
-    this.y = y;
-    this.velX = velX;
-    this.velY = velY;
-    this.color = color;
-    this.size = size;
-    this.val = val;
-    this.force = force;
-}
-
-Node.prototype.draw = function() {
-    ctx.beginPath();
-    ctx.fillStyle = 'crimson';
-    ctx.arc(this.x, this.y, this.size, 0, 2*Math.PI);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = this.color;
-    ctx.font = "20px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(this.val, this.x, this.y+7);
-}
-
-Node.prototype.update = function() {
-    this.velX += this.force.x;
-    this.velY += this.force.y;
-    this.x += this.velX;
-    this.y += this.velY;
-}
-
-Node.prototype.copy = function() {
-    return new Node(this.x, this.y, this.velX, this.velY, this.color, this.size, this.val, this.force);
-}
-
-function Edge(v1, v2, color) {
-    this.v1 = v1;
-    this.v2 = v2;
-    this.color = color;
-}
-
-Edge.prototype.draw = function() {
-    ctx.beginPath();
-    ctx.moveTo(this.v1.x, this.v1.y);
-    ctx.lineTo(this.v2.x, this.v2.y);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-}
-
-function dist(v1, v2) {
-    return Math.sqrt((v2.x-v1.x)*(v2.x-v1.x) + (v2.y-v1.y)*(v2.y-v1.y));
-}
-
-function uvec(v1, v2) {
-    let f = new Force(v2.x-v1.x, v2.y-v1.y);
-    let d = dist(v1, v2);
-    f.scale(1/d);
-    return f;
-}
-
-function mag(x, y) {
-    return Math.sqrt(x*x + y*y);
-}
+const WIDTH = canvas.width = 970;
+const HEIGHT = canvas.height = 600;
+const EDGE_LEN = 100;
 
 let nodes = [];
 let edges = [];
 let adj = [];
+let extra_nodes = new Set();
 
 function loop() {
     for (let i = 0; i < nodes.length; i++) {
+        if (extra_nodes.has(nodes[i].val-1)) {
+            continue;
+        }
         let resultant = new Force(0, 0);
         for (let j = 0; j < nodes.length; j++) {
+            if (extra_nodes.has(nodes[j].val-1)) {
+                continue;
+            }
             if (j !== i) {
                 let f = new Force(0, 0);
                 if (adj[i][j]) {
                     f.add(uvec(nodes[i], nodes[j]));
-                    f.scale(20*(dist(nodes[i], nodes[j])-edgeLen));
+                    f.scale(20*(dist(nodes[i], nodes[j])-EDGE_LEN));
                 }
                 f.add(uvec(nodes[j], nodes[i]));
                 f.scale(10/(dist(nodes[i], nodes[j])*dist(nodes[i], nodes[j])));
@@ -111,6 +43,8 @@ function loop() {
         nodes[i].force = resultant;
     }
     for (let i = 0; i < nodes.length; i++) {
+        if (extra_nodes.has(nodes[i].val-1))
+            continue;
         nodes[i].update();
     }
 }
@@ -119,23 +53,32 @@ function moveGraphToCenter() {
     let average_x = 0, average_y = 0;
 
     for (let i = 0; i < nodes.length; i++) {
+        if (extra_nodes.has(nodes[i].val-1)) {
+            continue;
+        }
         average_x += nodes[i].x;
         average_y += nodes[i].y;
     }
 
-    average_x /= nodes.length;
-    average_y /= nodes.length;
+    average_x /= nodes.length-extra_nodes.size;
+    average_y /= nodes.length-extra_nodes.size;
 
     for (let i = 0; i < nodes.length; i++) {
-        nodes[i].x -= (average_x-canvas.width/2);
-        nodes[i].y -= (average_y-canvas.height/2);
+        nodes[i].x -= (average_x-WIDTH/2);
+        nodes[i].y -= (average_y-HEIGHT/2);
     }
 }
 
 function graphScore() {
     let mn = 100000000;
     for (let i = 0; i < nodes.length; i++) {
+        if (extra_nodes.has(nodes[i].val-1)) {
+            continue;
+        }
         for (let j = 0; j < nodes.length; j++) {
+            if (extra_nodes.has(nodes[j].val-1)) {
+                continue;
+            }
             if (i != j) {
                 mn = Math.min(mn, dist(nodes[i], nodes[j]));
             }
@@ -147,7 +90,13 @@ function graphScore() {
 function graphDia() {
     let mx = 0;
     for (let i = 0; i < nodes.length; i++) {
+        if (extra_nodes.has(nodes[i].val-1)) {
+            continue;
+        }
         for (let j = 0; j < nodes.length; j++) {
+            if (extra_nodes.has(nodes[j].val-1)) {
+                continue;
+            }
             if (i != j) {
                 mx = Math.max(mx, dist(nodes[i], nodes[j]));
             }
@@ -156,7 +105,7 @@ function graphDia() {
     return mx;
 }
 
-function Graph(V, E) {
+export function Graph(V, E) {
     this.V = V;
     this.E = E;
 }
@@ -167,9 +116,21 @@ Graph.prototype.draw = function() {
     adj = [];
 
     for (let i = 0; i < this.V.length; i++) {
-        nodes.push(new Node(300+Math.floor(400*Math.random()), 200+Math.floor(400*Math.random()), 0, 0, 'white', 20, this.V[i], new Force(0, 0)));
+        nodes.push(
+            new Node(
+                300+Math.floor(400*Math.random()), 
+                200+Math.floor(400*Math.random()), 
+                0, 0, 'white', 20, this.V[i], 
+                new Force(0, 0)
+            )
+        );
     }
     
+    let deg = [];
+    for (let i = 0; i < this.V.length; i++) {
+        deg.push(0);
+    }
+
     for (let i = 0; i < this.V.length; i++) {
         let temp = [];
         for (let j = 0; j < this.V.length; j++) {
@@ -177,11 +138,21 @@ Graph.prototype.draw = function() {
         }
         adj.push(temp);
     }
+
     for (let i = 0; i < this.E.length; i++) {
+        deg[this.E[i][0]-1] += 1;
+        deg[this.E[i][1]-1] += 1;
+
         adj[this.E[i][0]-1][this.E[i][1]-1] = 1;
         adj[this.E[i][1]-1][this.E[i][0]-1] = 1;
     }
 
+    for (let i = 0; i < deg.length; i++) {
+        if (deg[i] === 0) {
+            extra_nodes.add(i);
+        }
+    }
+    
     var best_score = 0;
     var best_nodes = [];
     for (let j = 0; j < 20; j++) {
@@ -207,21 +178,30 @@ Graph.prototype.draw = function() {
         }
     }
 
+    
     nodes = best_nodes;
     moveGraphToCenter();
+    let pos = 30;
+    for (let i = 0; i < nodes.length; i++) {
+        if (extra_nodes.has(nodes[i].val-1)) {
+            nodes[i].x = pos;
+            nodes[i].y = 40;
+            pos += 50;
+        }
+    }
     
     ctx.fillStyle = "#1e1e1e";
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
     
     for (let i = 0; i < this.E.length; i++) {
         edges.push(new Edge(nodes[this.E[i][0]-1], nodes[this.E[i][1]-1], 'white'));
     }
 
     for (let i = 0; i < edges.length; i++) {
-        edges[i].draw();
+        edges[i].draw(ctx);
     }
 
     for (let i = 0; i < nodes.length; i++) {
-        nodes[i].draw();
+        nodes[i].draw(ctx);
     }
 }
