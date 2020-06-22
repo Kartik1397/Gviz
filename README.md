@@ -3,7 +3,8 @@ Tool for graph visualization
 ## Live Demo
 https://kartik1397.github.io/Gviz/
 ## How To Use
-Enter edge list of graph in following formate:
+Root: Index of Rooted tree(Keep it black for non-rooted tree)<br />
+Graph: Enter edge list of graph in following formate:
 ```
 N M
 u1 v1
