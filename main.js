@@ -5,7 +5,7 @@ import { Edge } from './modules/edge.js';
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
-// variables
+// Variables
 
 const WIDTH = canvas.width = 970;
 const HEIGHT = canvas.height = 600;
@@ -15,15 +15,17 @@ let nodes = [];
 let edges = [];
 let adj = [];
 let extra_nodes = new Set();
+let g_root;
+// Rendering
 
 function loop() {
     for (let i = 0; i < nodes.length; i++) {
-        if (extra_nodes.has(nodes[i].val-1)) {
+        if (extra_nodes.has(nodes[i].val-1) || i == g_root-1) {
             continue;
         }
         let resultant = new Force(0, 0);
         for (let j = 0; j < nodes.length; j++) {
-            if (extra_nodes.has(nodes[j].val-1)) {
+            if (extra_nodes.has(nodes[j].val-1) || i == g_root-1) {
                 continue;
             }
             if (j !== i) {
@@ -34,6 +36,12 @@ function loop() {
                 }
                 f.add(uvec(nodes[j], nodes[i]));
                 f.scale(10/(dist(nodes[i], nodes[j])*dist(nodes[i], nodes[j])));
+                if (g_root != null) {
+                    let g = new Force(0, 0);
+                    g.x = 0;
+                    g.y = 0.0005;
+                    resultant.add(g);
+                }
                 resultant.add(f);
             }
         }
@@ -43,7 +51,7 @@ function loop() {
         nodes[i].force = resultant;
     }
     for (let i = 0; i < nodes.length; i++) {
-        if (extra_nodes.has(nodes[i].val-1))
+        if (extra_nodes.has(nodes[i].val-1) || i == g_root-1)
             continue;
         nodes[i].update();
     }
@@ -105,15 +113,21 @@ function graphDia() {
     return mx;
 }
 
-export function Graph(V, E) {
+export function Graph(V, E, root, directed) {
     this.V = V;
     this.E = E;
+    this.root = root;
+    this.directed = directed;
 }
 
 Graph.prototype.draw = function() {
     nodes = [];
     edges = [];
     adj = [];
+    g_root = this.root;
+    if (g_root == null) {
+        g_root = -1;
+    }
 
     for (let i = 0; i < this.V.length; i++) {
         nodes.push(
@@ -125,7 +139,12 @@ Graph.prototype.draw = function() {
             )
         );
     }
-    
+
+    if (g_root >= 1) {
+        nodes[g_root-1].x = 100;
+        nodes[g_root-1].y = 100;
+    }
+    console.log(nodes[g_root-1]);
     let deg = [];
     for (let i = 0; i < this.V.length; i++) {
         deg.push(0);
@@ -152,7 +171,6 @@ Graph.prototype.draw = function() {
             extra_nodes.add(i);
         }
     }
-    
     var best_score = 0;
     var best_nodes = [];
     for (let j = 0; j < 20; j++) {
@@ -161,14 +179,19 @@ Graph.prototype.draw = function() {
             nodes[i].y = 300+Math.floor(400*Math.random() + 20*Math.random());
             nodes[i].velX = 0;
             nodes[i].velY = 0;
-            nodes[i].Force = new Force(0, 0);
+            nodes[i].force = new Force(0, 0);
+        }
+        if (g_root >= 1) {
+            nodes[g_root-1].x = 100;
+            nodes[g_root-1].y = 100;
         }
         for (let i = 0; i < 5000; i++) {
             loop();
         }
+        console.log(nodes);
         let score = graphScore();
         let max_dist = graphDia();
-
+        
         if (score > best_score && max_dist < canvas.height) {
             best_score = score;
             best_nodes = [];
@@ -177,8 +200,6 @@ Graph.prototype.draw = function() {
             }
         }
     }
-
-    
     nodes = best_nodes;
     moveGraphToCenter();
     let pos = 30;
@@ -189,16 +210,14 @@ Graph.prototype.draw = function() {
             pos += 50;
         }
     }
-    
     ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    
     for (let i = 0; i < this.E.length; i++) {
         edges.push(new Edge(nodes[this.E[i][0]-1], nodes[this.E[i][1]-1], 'white'));
     }
 
     for (let i = 0; i < edges.length; i++) {
-        edges[i].draw(ctx);
+        edges[i].draw(ctx, this.directed);
     }
 
     for (let i = 0; i < nodes.length; i++) {

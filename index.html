@@ -19,8 +19,15 @@
                     </svg>-->
                 </div>
                 <div class="col side-pan">
-                    <h3>Graph[<a title="Enter edge list with number of vertex and number of edges">?</a>]:</h3>
-                    <textarea id="text_input" value="3 3 1 2 2 3 3 1"></textarea>
+                    <!--<div class="options">
+                        <label for="is_root"><b>rooted</b>
+                            <input type="checkbox" id = "is_root">
+                        </label>
+                    </div>-->
+                    <h3>Root:</h3>
+                    <textarea class="small-input" id="root_input"></textarea>
+                    <h3>Graph[<a title="Enter edge list with number of vertex and number of edges">?</a>]:<button id="is_directed" onclick="change_stat()">Undirected</button></h3>
+                    <textarea class="large-input" id="text_input"></textarea>
                     <p></p>
                     <button id="submit-button" onclick="render()">Submit</button>
                     <p></p>
@@ -33,8 +40,9 @@
         <script type="module" src="./main.js"></script>
         <script type="module" src="./control.js"></script>
         <script type="module">
-            import { render } from './control.js';
+            import { render, change_stat } from './control.js';
             window.render = render;
+            window.change_stat = change_stat;
         </script>
     </body>
 </html>
