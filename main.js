@@ -5,11 +5,20 @@ import { Edge } from './modules/edge.js';
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
+canvas.style.width = '100%';
+canvas.style.height = '100%';
+
+canvas.width = document.querySelector('.view').offsetWidth;
+canvas.height = document.querySelector('.view').offsetHeight
+
+
+
 // Variables
 
-const WIDTH = canvas.width = 970;
-const HEIGHT = canvas.height = 600;
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
 const EDGE_LEN = 100;
+const RAD = 20;
 
 let nodes = [];
 let edges = [];
@@ -134,7 +143,7 @@ Graph.prototype.draw = function() {
             new Node(
                 300+Math.floor(400*Math.random()), 
                 200+Math.floor(400*Math.random()), 
-                0, 0, 'white', 20, this.V[i], 
+                0, 0, 'white', RAD, this.V[i], 
                 new Force(0, 0)
             )
         );
